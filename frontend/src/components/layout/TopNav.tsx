@@ -1,138 +1,179 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-interface NavLink {
-  label: string;
-  href: string;
-}
-
-const navLinks: NavLink[] = [
-  { label: 'Dashboard', href: '/dashboard' },
-  { label: 'Agents', href: '/agents' },
-  { label: 'Transactions', href: '/transactions' },
-  { label: 'BYOA', href: '/byoa' },
-];
-
 export const TopNav: React.FC = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  const isActive = (href: string) => {
-    return pathname === href || pathname.startsWith(href + '/');
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const navLinks = [
+    { href: '/dashboard', label: 'Dashboard', icon: '📊' },
+    { href: '/agents', label: 'Agents', icon: '🤖' },
+    { href: '/transactions', label: 'Transactions', icon: '💱' },
+    { href: '/byoa', label: 'BYOA', icon: '🔗' },
+  ];
+
+  const isActive = (href: string) => pathname === href;
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="container-base">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 flex-shrink-0 group">
-            <div className="w-10 h-10 bg-gradient-dark rounded-lg flex items-center justify-center text-white font-bold text-lg transition-transform duration-300 group-hover:scale-110">
-              ⭐
+    <>
+      {/* Floating Navigation Bar */}
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? 'glass shadow-lg py-3'
+            : 'bg-transparent py-6'
+        }`}
+      >
+        <div className="container-base flex items-center justify-between">
+          {/* Logo Section */}
+          <Link
+            href="/"
+            className="flex items-center gap-3 group"
+          >
+            <div className="relative">
+              {/* Glow Effect */}
+              <div className="absolute inset-0 bg-gradient-cyan rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-300" />
+              
+              {/* Logo Icon */}
+              <div className="relative bg-dark-900 rounded-lg p-2">
+                <span className="text-xl">⚡</span>
+              </div>
             </div>
-            <h1 className="text-xl font-bold text-gray-900 hidden sm:block group-hover:text-primary-600 transition-colors duration-300">
-              Agentic Wallet
-            </h1>
+
+            {/* Logo Text */}
+            <div className="flex flex-col">
+              <span className="text-xl font-bold text-gradient">FLASH</span>
+              <span className="text-xs text-slate-100 -mt-1">Agentic Wallet</span>
+            </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-colors duration-300 pb-2 border-b-2 ${
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 relative group ${
                   isActive(link.href)
-                    ? 'text-primary-600 border-primary-600'
-                    : 'text-gray-600 border-transparent hover:text-gray-900'
+                    ? 'text-cyan-400'
+                    : 'text-slate-100 hover:text-white'
                 }`}
               >
-                {link.label}
+                <span className="flex items-center gap-2">
+                  <span>{link.icon}</span>
+                  {link.label}
+                </span>
+
+                {/* Animated Underline */}
+                <div
+                  className={`absolute bottom-0 left-0 h-0.5 bg-gradient-cyan transition-all duration-300 ${
+                    isActive(link.href) ? 'w-full' : 'w-0 group-hover:w-full'
+                  }`}
+                />
+
+                {/* Hover Background */}
+                {!isActive(link.href) && (
+                  <div className="absolute inset-0 rounded-lg bg-cyan-500/5 -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                )}
               </Link>
             ))}
           </div>
 
-          {/* Right Section */}
+          {/* Right Section: User Profile & Mobile Menu Toggle */}
           <div className="flex items-center gap-4">
-            {/* Network Status */}
-            <div className="hidden lg:flex items-center gap-2 text-sm">
-              <span className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></span>
-              <span className="text-gray-600">Testnet</span>
+            {/* User Profile Dropdown (Desktop) */}
+            <div className="hidden md:flex items-center">
+              <button className="flex items-center gap-2 px-4 py-2 rounded-lg glass glass-hover group">
+                <div className="w-8 h-8 rounded-full bg-gradient-cyan flex items-center justify-center font-bold text-dark-900 text-sm">
+                  A
+                </div>
+                <span className="text-sm font-medium text-slate-100 group-hover:text-white">
+                  Admin
+                </span>
+                <svg className="w-4 h-4 text-slate-100 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </button>
             </div>
-
-            {/* Settings Button */}
-            <button
-              className="p-2.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-300"
-              aria-label="Settings"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            </button>
 
             {/* Mobile Menu Toggle */}
             <button
-              className="md:hidden p-2.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-300"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label="Toggle menu"
+              className="md:hidden p-2 rounded-lg glass glass-hover text-cyan-400"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {isMobileMenuOpen ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                )}
-              </svg>
+              {isMobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
             </button>
           </div>
         </div>
+      </nav>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-gray-50 animate-slide-in">
-            <div className="px-4 py-3 space-y-2">
-              {navLinks.map((link) => (
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed top-20 left-0 right-0 z-40 md:hidden animate-slide-down">
+          <div className="glass m-4 rounded-xl overflow-hidden">
+            <div className="flex flex-col">
+              {navLinks.map((link, index) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block px-4 py-2.5 rounded-lg transition-colors duration-300 text-sm font-medium ${
+                  className={`px-4 py-3 border-b border-cyan-900/20 last:border-b-0 flex items-center gap-3 transition-colors ${
                     isActive(link.href)
-                      ? 'bg-primary-100 text-primary-600'
-                      : 'text-gray-600 hover:bg-gray-200'
+                      ? 'bg-cyan-500/10 text-cyan-400'
+                      : 'text-slate-100 hover:bg-cyan-500/5'
                   }`}
+                  style={{ 
+                    animation: `slideInUp 0.3s ease-out ${index * 50}ms both`
+                  }}
                 >
-                  {link.label}
+                  <span className="text-xl">{link.icon}</span>
+                  <span className="font-medium">{link.label}</span>
                 </Link>
               ))}
+
+              {/* Mobile User Profile */}
+              <div className="px-4 py-4 border-t border-cyan-900/20 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-cyan flex items-center justify-center font-bold text-dark-900">
+                  A
+                </div>
+                <div>
+                  <p className="font-medium text-white">Admin</p>
+                  <p className="text-xs text-slate-100">Connected</p>
+                </div>
+              </div>
+
+              {/* Mobile Logout */}
+              <button className="w-full px-4 py-3 text-left text-error hover:bg-error/10 transition-colors font-medium border-t border-cyan-900/20">
+                Logout
+              </button>
             </div>
           </div>
-        )}
-      </div>
-    </nav>
+        </div>
+      )}
+
+      {/* Spacer for fixed nav */}
+      <div className="h-20" />
+    </>
   );
 };

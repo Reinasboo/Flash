@@ -7,8 +7,8 @@ import { Providers } from "./Providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Agentic Wallet Platform",
-  description: "Autonomous AI agents controlling wallets securely on Stellar",
+  title: "FLASH - Agentic Wallet Platform",
+  description: "Autonomous AI agents controlling wallets securely on Stellar. Intent-based execution, zero private key exposure.",
 };
 
 export default function RootLayout({
@@ -18,14 +18,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-dark-900 text-slate-100`}>
         <Providers>
-          <div className="min-h-screen bg-white text-gray-900">
-            <TopNav />
-            <main className="flex-1">
-              {children}
-            </main>
-          </div>
+          <TopNav />
+          <main className="flex-1">
+            {children}
+          </main>
         </Providers>
       </body>
     </html>
