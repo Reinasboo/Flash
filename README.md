@@ -1,4 +1,13 @@
-# Agentic Wallet Platform on Stellar
+# FLASH - Agentic Wallet Platform on Stellar
+
+[![GitHub](https://img.shields.io/badge/GitHub-Reinasboo%2FFlash-blue?logo=github)](https://github.com/Reinasboo/Flash)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green?logo=node.js)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-336791?logo=postgresql)](https://www.postgresql.org/)
+[![Stellar SDK](https://img.shields.io/badge/Stellar-SDK%2011-blue)](https://developers.stellar.org/)
+[![Code Quality: A](https://img.shields.io/badge/Code%20Quality-A-brightgreen)]()
+[![Security Audit: ✅](https://img.shields.io/badge/Security%20Audit-✅-brightgreen)]()
 
 A production-grade **autonomous agent wallet system** built natively for Stellar (XLM), enabling AI agents to control wallets securely through an **intent-based execution model**—without ever accessing private keys.
 

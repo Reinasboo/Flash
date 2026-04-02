@@ -1,0 +1,65 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: flash-postgres
+    environment:
+      POSTGRES_USER: flash_user
+      POSTGRES_PASSWORD: flash_password_dev
+      POSTGRES_DB: agentic_wallet
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flash_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - flash_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flash-backend
+    environment:
+      DATABASE_URL: postgresql://flash_user:flash_password_dev@postgres:5432/agentic_wallet
+      STELLAR_NETWORK_PASSPHRASE: 'Test SDF Network ; September 2015'
+      HORIZON_API_URL: https://horizon-testnet.stellar.org
+      WALLET_ENCRYPTION_PASSWORD: dev_encryption_password_123
+      FRONTEND_ORIGIN: http://localhost:3000
+      NODE_ENV: development
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - flash_network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: flash-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - flash_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  flash_network:
+    driver: bridge
