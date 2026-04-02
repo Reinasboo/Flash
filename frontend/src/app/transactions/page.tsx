@@ -3,23 +3,8 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
-import { Card } from '@/components/Card';
-import { Input } from '@/components/Input';
-import { Button } from '@/components/Button';
-import { Select } from '@/components/Select';
-import { Badge } from '@/components/Badge';
-import { Table } from '@/components/Table';
 
-interface Transaction {
-  hash: string;
-  type: string;
-  source: string;
-  destination?: string;
-  amount?: string;
-  asset?: string;
-  timestamp: number;
-  status: 'success' | 'failed';
-}
+
 
 export default function TransactionsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,164 +13,185 @@ export default function TransactionsPage() {
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ['transactions'],
     queryFn: async () => {
-      // Placeholder - will be implemented when backend endpoint is ready
-      return [];
+      const res = await apiClient.getTransactions();
+      return res.data?.data || [];
     },
     refetchInterval: 10000,
   });
 
-  const filteredTransactions = (transactions || []).filter((tx: Transaction) => {
+  const filteredTransactions = (transactions || []).filter((tx: any) => {
     const matchesSearch =
-      tx.hash.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tx.source.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tx.hash?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tx.source?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tx.destination?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' || tx.status === statusFilter;
-
     return matchesSearch && matchesStatus;
   });
 
-  const successCount = transactions.filter((tx: Transaction) => tx.status === 'success').length;
-  const failedCount = transactions.filter((tx: Transaction) => tx.status === 'failed').length;
+  const successCount = transactions.filter((tx: any) => tx.status === 'success').length;
+  const failedCount = transactions.filter((tx: any) => tx.status === 'failed').length;
   const totalAmount = transactions
-    .filter((tx: Transaction) => tx.status === 'success' && tx.amount)
-    .reduce((sum: number, tx: Transaction) => sum + parseFloat(tx.amount || '0'), 0);
-
-  const columns = [
-    { key: 'type', label: 'Type', render: (val: any) => (
-      <span>{val === 'payment' ? '💸' : '🔄'} {val}</span>
-    )},
-    { key: 'hash', label: 'Hash', render: (val: any) => (
-      <code className="text-xs">{val?.substring(0, 16)}...</code>
-    )},
-    { key: 'amount', label: 'Amount' },
-    { key: 'status', label: 'Status', render: (val: any) => (
-      <Badge variant={val === 'success' ? 'success' : 'error'} size="sm">
-        {val}
-      </Badge>
-    )},
-    { key: 'timestamp', label: 'Date', render: (val: any) => (
-      <span>{new Date(val * 1000).toLocaleDateString()}</span>
-    )},
-  ];
+    .filter((tx: any) => tx.status === 'success' && tx.amount)
+    .reduce((sum: number, tx: any) => sum + parseFloat(tx.amount || '0'), 0);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Page Header */}
-      <div className="border-b border-gray-200 bg-gray-50 sticky top-16 z-40">
-        <div className="container-base py-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Transactions</h1>
-            <p className="text-gray-600">View and track all wallet transactions</p>
+    <main className="min-h-screen bg-dark-900">
+      {/* Header Section */}
+      <section className="relative overflow-hidden pt-16 pb-16">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-gradient-blue rounded-full blur-3xl opacity-20 animate-pulse"></div>
+          <div className="absolute bottom-10 left-1/3 w-96 h-96 bg-gradient-cyan rounded-full blur-3xl opacity-15 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        </div>
+
+        <div className="container-base relative z-10">
+          <h1 className="text-5xl md:text-6xl font-bold mb-3">
+            <span className="text-gradient">Transactions</span>
+          </h1>
+          <p className="text-xl text-slate-100 max-w-2xl">View and track all wallet transactions in real-time</p>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 border-t border-cyan-900/20">
+        <div className="container-base">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="card glass-hover">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-slate-100 font-semibold">Total</h3>
+                <span className="text-2xl">📊</span>
+              </div>
+              <p className="text-3xl font-bold text-gradient">{transactions.length}</p>
+              <p className="text-slate-200 text-sm mt-2">All transactions</p>
+            </div>
+
+            <div className="card glass-hover">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-slate-100 font-semibold">Successful</h3>
+                <span className="text-2xl">✅</span>
+              </div>
+              <p className="text-3xl font-bold text-success">{successCount}</p>
+              <p className="text-slate-200 text-sm mt-2">Completed</p>
+            </div>
+
+            <div className="card glass-hover">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-slate-100 font-semibold">Failed</h3>
+                <span className="text-2xl">❌</span>
+              </div>
+              <p className="text-3xl font-bold text-error">{failedCount}</p>
+              <p className="text-slate-200 text-sm mt-2">Errors</p>
+            </div>
+
+            <div className="card glass-hover">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-slate-100 font-semibold">Volume</h3>
+                <span className="text-2xl">💰</span>
+              </div>
+              <p className="text-3xl font-bold text-cyan-400">{totalAmount.toFixed(2)}</p>
+              <p className="text-slate-200 text-sm mt-2">XLM Moved</p>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="container-base py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {[
-            { label: 'Total', value: transactions.length, icon: '📊' },
-            { label: 'Successful', value: successCount, icon: '✅', color: 'success' },
-            { label: 'Failed', value: failedCount, icon: '❌', color: 'error' },
-            { label: 'Total Volume', value: `${totalAmount.toFixed(2)} XLM`, icon: '💰' },
-          ].map((stat, idx) => (
-            <Card key={idx}>
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm mb-1">{stat.label}</p>
-                  <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-                </div>
-                <span className="text-3xl">{stat.icon}</span>
+      {/* Transactions List */}
+      <section className="py-24 border-t border-cyan-900/20">
+        <div className="container-base">
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-4xl font-bold mb-2">Transaction History</h2>
+                <p className="text-slate-100">All recorded wallet transactions</p>
               </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* Filters */}
-        <div className="mb-8 flex flex-col md:flex-row gap-4">
-          <Input
-            placeholder="Search by hash or address..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            fullWidth
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            }
-          />
-
-          <Select
-            options={[
-              { label: 'All Statuses', value: 'all' },
-              { label: 'Successful', value: 'success' },
-              { label: 'Failed', value: 'failed' },
-            ]}
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'success' | 'failed')}
-            className="md:w-48"
-          />
-
-          <Button variant="secondary">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Export
-          </Button>
-        </div>
-
-        {/* Transactions Table */}
-        {isLoading ? (
-          <Card className="p-12 text-center">
-            <div className="animate-spin inline-block">
-              <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
+              <button className="btn-secondary">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export
+              </button>
             </div>
-            <p className="text-gray-600 mt-4">Loading transactions...</p>
-          </Card>
-        ) : filteredTransactions.length === 0 ? (
-          <Card className="p-12 text-center">
-            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              {transactions.length === 0 ? 'No transactions yet' : 'No matching transactions'}
-            </h3>
-            <p className="text-gray-600">
-              {transactions.length === 0 
-                ? 'Create agents and execute intents to see transactions'
-                : 'Try adjusting your filters'}
-            </p>
-          </Card>
-        ) : (
-          <Table
-            columns={columns}
-            data={filteredTransactions}
-            isLoading={isLoading}
-            hoverable
-            striped
-          />
-        )}
-      </div>
-    </div>
+
+            {/* Filters */}
+            <div className="flex flex-col md:flex-row gap-4">
+              <input
+                type="text"
+                placeholder="Search by hash or address..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 glass px-4 py-2 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'success' | 'failed')}
+                className="glass px-4 py-2 rounded-lg text-white bg-transparent focus:outline-none focus:ring-2 focus:ring-cyan-500 md:w-48"
+              >
+                <option value="all" style={{ color: '#000' }}>All Statuses</option>
+                <option value="success" style={{ color: '#000' }}>Successful</option>
+                <option value="failed" style={{ color: '#000' }}>Failed</option>
+              </select>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="card text-center py-16">
+              <div className="animate-spin inline-block">
+                <svg className="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle>
+                  <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"></path>
+                </svg>
+              </div>
+              <p className="text-slate-100 mt-4">Loading transactions...</p>
+            </div>
+          ) : filteredTransactions.length === 0 ? (
+            <div className="card text-center py-16">
+              <span className="text-6xl mb-4 block">📭</span>
+              <h3 className="text-2xl font-bold text-white mb-3">
+                {transactions.length === 0 ? 'No transactions yet' : 'No matching transactions'}
+              </h3>
+              <p className="text-slate-100">
+                {transactions.length === 0 
+                  ? 'Create agents and execute intents to see transactions'
+                  : 'Try adjusting your filters'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredTransactions.map((tx: any, index: number) => (
+                <div
+                  key={tx.hash}
+                  className="card glass-hover px-6 py-4 flex items-center justify-between hover:bg-cyan-900/20"
+                  style={{ animation: `slideInUp 0.5s ease-out ${index * 30}ms both` }}
+                >
+                  <div className="flex items-center gap-4 flex-1">
+                    <span className="text-2xl">{tx.type === 'payment' ? '💸' : '🔄'}</span>
+                    <div className="flex-1">
+                      <p className="text-white font-semibold">{tx.type}</p>
+                      <p className="text-cyan-400 font-mono text-xs">{tx.hash?.substring(0, 24)}...</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-8">
+                    {tx.amount && (
+                      <div className="text-right">
+                        <p className="text-slate-100 text-sm">{tx.amount} {tx.asset || 'XLM'}</p>
+                        <p className="text-slate-200 text-xs">Amount</p>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-semibold px-3 py-1 rounded-full ${
+                        tx.status === 'success' ? 'bg-success/20 text-success' : 'bg-error/20 text-error'
+                      }`}>
+                        {tx.status === 'success' ? '✓ Success' : '✗ Failed'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    </main>
   );
 }

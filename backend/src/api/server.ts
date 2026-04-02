@@ -333,6 +333,43 @@ export function createAPIServer(
     }
   });
 
+  // ============ TRANSACTIONS ============
+  app.get("/transactions", async (req: Request, res: Response) => {
+    try {
+      // TODO: Fetch from database when transaction history is implemented
+      // For now, return empty array for frontend to consume
+      const response: APIResponse<any[]> = {
+        success: true,
+        data: [],
+        timestamp: Date.now(),
+      };
+      res.json(response);
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        error: "Failed to fetch transactions",
+        timestamp: Date.now(),
+      });
+    }
+  });
+
+  app.get("/transactions/:id", async (req: Request, res: Response) => {
+    try {
+      // TODO: Fetch specific transaction from database
+      res.status(404).json({
+        success: false,
+        error: "Transaction not found",
+        timestamp: Date.now(),
+      });
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        error: "Failed to fetch transaction",
+        timestamp: Date.now(),
+      });
+    }
+  });
+
   // ============ BYOA (Bring Your Own Agent) ============
   // Production database-driven BYOA implementation with persistent storage
   // All BYOA routes are handled by byoaRouter with database persistence and proper authentication
