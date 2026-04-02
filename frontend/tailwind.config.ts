@@ -58,9 +58,6 @@ const config: Config = {
           800: "#3a547c",
           900: "#29446e",
         },
-        success: "#00ff88",
-        warning: "#ff8844",
-        error: "#ff4444",
         gray: {
           50: "#F9FAFB",
           100: "#F5F7FA",
