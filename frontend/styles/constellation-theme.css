@@ -1,0 +1,206 @@
+/* Constellation Theme - Global Styles */
+:root {
+  /* Primary Colors */
+  --color-orion-blue: #0d1b4d;
+  --color-nebula-indigo: #312e81;
+  --color-pegasus-cyan: #00d9ff;
+  --color-vega-teal: #06b6d4;
+  --color-sirius-purple: #7c3aed;
+  
+  /* Neutral */
+  --color-polaris-white: #f8fafc;
+  --color-cassiopeia-silver: #e0e7ff;
+  --color-slate: #94a3b8;
+  
+  /* Status */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 40px;
+  
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  
+  /* Effects */
+  --blur-glass: 20px;
+  --blur-glass-md: 10px;
+}
+
+/* Global resets */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: linear-gradient(135deg, var(--color-orion-blue) 0%, #1e3a5f 100%);
+  background-attachment: fixed;
+  color: var(--color-polaris-white);
+  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Headings */
+h1 {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 56px;
+  letter-spacing: -0.02em;
+  color: var(--color-polaris-white);
+  text-shadow: 0 0 30px rgba(0, 217, 255, 0.2);
+  margin-bottom: var(--spacing-lg);
+}
+
+h2 {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 40px;
+  letter-spacing: -0.01em;
+  color: var(--color-polaris-white);
+  margin-bottom: var(--spacing-lg);
+}
+
+h3 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  color: var(--color-cassiopeia-silver);
+  margin-bottom: var(--spacing-md);
+}
+
+h4 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  color: var(--color-polaris-white);
+  text-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+}
+
+/* Body Text */
+p {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--color-polaris-white);
+  opacity: 0.95;
+  margin-bottom: var(--spacing-md);
+}
+
+small {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  color: var(--color-slate);
+  opacity: 0.75;
+}
+
+/* Links */
+a {
+  color: var(--color-pegasus-cyan);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    text-shadow: 0 0 10px rgba(0, 217, 255, 0.4);
+  }
+}
+
+/* Code/Monospace */
+code,
+pre {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-pegasus-cyan);
+  background-color: rgba(124, 58, 237, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+pre {
+  padding: var(--spacing-lg);
+  overflow-x: auto;
+  margin-bottom: var(--spacing-lg);
+  border: 1px solid rgba(0, 217, 255, 0.1);
+  border-radius: var(--radius-lg);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(13, 27, 77, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 217, 255, 0.3);
+  border-radius: 4px;
+  
+  &:hover {
+    background: rgba(0, 217, 255, 0.5);
+  }
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(0, 217, 255, 0.3);
+  color: var(--color-polaris-white);
+}
+
+/* Focus outline */
+:focus-visible {
+  outline: 2px solid rgba(0, 217, 255, 0.6);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Utilities */
+.truncate-address {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--color-pegasus-cyan);
+}
+
+.glass-blur-heavy {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-blur-medium {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.gradient-background {
+  background: linear-gradient(135deg, var(--color-orion-blue) 0%, #1e3a5f 100%);
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, var(--color-sirius-purple) 0%, var(--color-pegasus-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

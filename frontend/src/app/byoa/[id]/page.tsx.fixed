@@ -1,0 +1,306 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api';
+import { GlassCard, GlassButton } from '@/components/glass';
+import { StatusBadge } from '@/components/common/StatusBadge';
+import Link from 'next/link';
+
+export default function BYOAAgentDetail() {
+  const params = useParams();
+  const agentId = params.id as string;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Ensure BYOA auth is loaded
+  useEffect(() => {
+    apiClient.loadBYOAAuth();
+  }, []);
+
+  const agentQuery = useQuery({
+    queryKey: ['byoa-agent', agentId],
+    queryFn: async () => {
+      try {
+        const response = await apiClient.getBYOAAgent(agentId);
+        return response.data;
+      } catch (error) {
+        // Agent might not be authenticated, return null
+        return null;
+      }
+    },
+    enabled: mounted,
+  });
+
+  const intentsQuery = useQuery({
+    queryKey: ['byoa-agent-intents', agentId],
+    queryFn: async () => {
+      try {
+        const response = await apiClient.getBYOATransactions(agentId, { limit: 10 });
+        return response.data || [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: mounted && agentQuery.data,
+  });
+
+  if (!mounted) return null;
+
+  if (agentQuery.isLoading) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-4xl font-bold text-white">Agent Details</h1>
+        <GlassCard className="p-12 text-center">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-constellation-light/10 rounded w-48 mx-auto"></div>
+          </div>
+        </GlassCard>
+      </div>
+    );
+  }
+
+  if (!agentQuery.data) {
+    return (
+      <div className="space-y-6">
+        <Link href="/byoa">← Back to Agents</Link>
+        <GlassCard className="p-8 text-center">
+          <p className="text-red-400 font-semibold mb-4">Agent not found or not authenticated</p>
+          <p className="text-constellation-light text-sm mb-6">You may need to set up authentication or register first.</p>
+          <Link href="/byoa/register">
+            <GlassButton>Register New Agent</GlassButton>
+          </Link>
+        </GlassCard>
+      </div>
+    );
+  }
+
+  const agent = agentQuery.data;
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <Link href="/byoa" className="text-constellation-cyan hover:underline text-sm mb-2 inline-block">
+            ← Back to Agents
+          </Link>
+          <h1 className="text-4xl font-bold text-white mb-2">{agent.name}</h1>
+          <p className="text-constellation-light">{agent.description || 'No description'}</p>
+        </div>
+        <StatusBadge status={agent.status} size="lg" />
+      </div>
+
+      {/* Agent Info Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Agent ID */}
+        <GlassCard className="p-4">
+          <p className="text-xs text-constellation-light mb-2">Agent ID</p>
+          <p className="text-xs font-mono text-constellation-cyan truncate">{agent.id}</p>
+        </GlassCard>
+
+        {/* Wallet */}
+        <GlassCard className="p-4">
+          <p className="text-xs text-constellation-light mb-2">Stellar Wallet</p>
+          <p className="text-xs font-mono text-constellation-cyan truncate">{agent.wallet}</p>
+        </GlassCard>
+
+        {/* Balance */}
+        <GlassCard className="p-4">
+          <p className="text-xs text-constellation-light mb-2">Balance</p>
+          {agent.balance ? (
+            <div className="space-y-1">
+              {Object.entries(agent.balance).map(([asset, amount]) => (
+                <p key={asset} className="text-sm font-mono text-constellation-cyan">
+                  {amount} {asset}
+                </p>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-constellation-light">—</p>
+          )}
+        </GlassCard>
+
+        {/* Created */}
+        <GlassCard className="p-4">
+          <p className="text-xs text-constellation-light mb-2">Created</p>
+          <p className="text-xs text-constellation-cyan">
+            {new Date(agent.created_at).toLocaleDateString()}
+          </p>
+        </GlassCard>
+      </div>
+
+      {/* Permissions */}
+      {agent.permissions && (
+        <GlassCard className="p-6">
+          <h2 className="text-xl font-bold text-white mb-4">Permissions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-constellation-light">Submit Intents</span>
+                <span className={agent.permissions.can_submit_intents ? 'text-green-400' : 'text-red-400'}>
+                  {agent.permissions.can_submit_intents ? '✓' : '✗'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-constellation-light">Modify Config</span>
+                <span className={agent.permissions.can_modify_config ? 'text-green-400' : 'text-red-400'}>
+                  {agent.permissions.can_modify_config ? '✓' : '✗'}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-constellation-light">View Balance</span>
+                <span className={agent.permissions.can_view_balance ? 'text-green-400' : 'text-red-400'}>
+                  {agent.permissions.can_view_balance ? '✓' : '✗'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-constellation-light">View History</span>
+                <span className={agent.permissions.can_view_transaction_history ? 'text-green-400' : 'text-red-400'}>
+                  {agent.permissions.can_view_transaction_history ? '✓' : '✗'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </GlassCard>
+      )}
+
+      {/* Rate Limit Status */}
+      {agent.rateLimitStatus && (
+        <GlassCard className="p-6">
+          <h2 className="text-xl font-bold text-white mb-4">Rate Limit Status</h2>
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-constellation-light">Intents This Hour</span>
+                <span className="text-white font-semibold">
+                  {agent.rateLimitStatus.remaining} / {agent.rateLimitStatus.limit}
+                </span>
+              </div>
+              <div className="w-full bg-constellation-dark/50 rounded-full h-2.5">
+                <div
+                  className="bg-constellation-cyan h-2.5 rounded-full transition-all"
+                  style={{
+                    width: `${100 - (agent.rateLimitStatus.remaining / agent.rateLimitStatus.limit) * 100}%`,
+                  }}
+                ></div>
+              </div>
+              <p className="text-xs text-constellation-light mt-2">
+                Resets at {new Date(agent.rateLimitStatus.resetAt).toLocaleTimeString()}
+              </p>
+            </div>
+          </div>
+        </GlassCard>
+      )}
+
+      {/* Recent Transactions */}
+      <GlassCard className="p-6">
+        <h2 className="text-xl font-bold text-white mb-4">Recent Transactions</h2>
+
+        {intentsQuery.isLoading ? (
+          <div className="text-center py-8">
+            <p className="text-constellation-light">Loading transactions...</p>
+          </div>
+        ) : intentsQuery.data && intentsQuery.data.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="text-left py-3 px-4 text-constellation-light font-semibold">Type</th>
+                  <th className="text-left py-3 px-4 text-constellation-light font-semibold">Status</th>
+                  <th className="text-left py-3 px-4 text-constellation-light font-semibold">Amount</th>
+                  <th className="text-left py-3 px-4 text-constellation-light font-semibold">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {intentsQuery.data.map((tx: any, idx: number) => (
+                  <tr key={idx} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                    <td className="py-3 px-4">
+                      <span className="text-constellation-cyan font-mono text-xs">{tx.type || '—'}</span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <StatusBadge status={tx.status || 'pending'} size="xs" />
+                    </td>
+                    <td className="py-3 px-4 text-white">{tx.amount || '—'}</td>
+                    <td className="py-3 px-4 text-constellation-light">
+                      {tx.created_at ? new Date(tx.created_at).toLocaleDateString() : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-constellation-light">No transactions yet</p>
+          </div>
+        )}
+      </GlassCard>
+
+      {/* Contact & Metadata */}
+      {(agent.contact_email || agent.metadata) && (
+        <GlassCard className="p-6">
+          <h2 className="text-xl font-bold text-white mb-4">Additional Information</h2>
+          <div className="space-y-4">
+            {agent.contact_email && (
+              <div>
+                <p className="text-constellation-light text-sm mb-1">Contact Email</p>
+                <a
+                  href={`mailto:${agent.contact_email}`}
+                  className="text-constellation-cyan hover:underline text-sm"
+                >
+                  {agent.contact_email}
+                </a>
+              </div>
+            )}
+            {agent.metadata && Object.keys(agent.metadata).length > 0 && (
+              <div>
+                <p className="text-constellation-light text-sm mb-2">Metadata</p>
+                <pre className="bg-constellation-dark/50 text-constellation-cyan text-xs p-4 rounded overflow-x-auto">
+                  {JSON.stringify(agent.metadata, null, 2)}
+                </pre>
+              </div>
+            )}
+          </div>
+        </GlassCard>
+      )}
+
+      {/* API Documentation */}
+      <GlassCard className="p-6">
+        <h2 className="text-xl font-bold text-white mb-4">Submit Intents via API</h2>
+        <p className="text-constellation-light text-sm mb-4">
+          Use your Agent ID and Control Token to submit transaction intents:
+        </p>
+        <pre className="bg-constellation-dark/50 text-constellation-cyan text-xs p-4 rounded overflow-x-auto">
+          {`curl -X POST http://localhost:3001/byoa/agents/${agent.id}/intents \\
+  -H "X-Agent-ID: ${agent.id}" \\
+  -H "X-Control-Token-Hash: <sha256(control_token)>" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "idempotency_key": "550e8400-e29b-41d4-a716-446655440000",
+    "intents": [{
+      "type": "TRANSFER_XLM",
+      "params": {
+        "destination": "GBRPYHIL2CI3WHZDTOOQFC6EB4KJJGUJEEN2OCYX3BNUFXWOOZIEB2P2",
+        "amount": "100.00"
+      }
+    }]
+  }'`}
+        </pre>
+      </GlassCard>
+
+      {/* Actions */}
+      <div className="flex gap-4">
+        <Link href="/byoa" className="flex-1">
+          <GlassButton className="w-full">← Back to Agents</GlassButton>
+        </Link>
+      </div>
+    </div>
+  );
+}
